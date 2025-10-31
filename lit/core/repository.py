@@ -33,9 +33,11 @@ class Repository:
         self.index_file = self.lit_dir / 'index'
         self.config_file = self.lit_dir / 'config'
         
-        # Initialize RefManager (lazy loading to avoid circular import)
+        # Initialize managers (lazy loading to avoid circular import)
         self._ref_manager = None
         self._diff_engine = None
+        self._merge_engine = None
+        self._remote_manager = None
     
     @property
     def refs(self):
@@ -52,6 +54,22 @@ class Repository:
             from .diff import DiffEngine
             self._diff_engine = DiffEngine(self)
         return self._diff_engine
+    
+    @property
+    def merge(self):
+        """Get MergeEngine instance."""
+        if self._merge_engine is None:
+            from .merge import MergeEngine
+            self._merge_engine = MergeEngine(self)
+        return self._merge_engine
+    
+    @property
+    def remote(self):
+        """Get RemoteManager instance."""
+        if self._remote_manager is None:
+            from .remote import RemoteManager
+            self._remote_manager = RemoteManager(self)
+        return self._remote_manager
     
     def init(self) -> 'Repository':
         """

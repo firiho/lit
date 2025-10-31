@@ -12,7 +12,12 @@ from lit.cli.commands.switch import switch_cmd
 from lit.cli.commands.refs import show_ref_cmd, symbolic_ref_cmd
 from lit.cli.commands.diff import diff_cmd
 from lit.cli.commands.show import show_cmd
+from lit.cli.commands.merge import merge_cmd
+from lit.cli.commands.clone import clone_cmd
+from lit.cli.commands.pull import pull_cmd
+from lit.cli.commands.push import push_cmd
+from lit.cli.commands.remote import remote_cmd
 
 __all__ = ['init_cmd', 'add_cmd', 'commit_cmd', 'config_cmd', 'status_cmd', 'log_cmd', 
            'branch_cmd', 'checkout_cmd', 'switch_cmd', 'show_ref_cmd', 'symbolic_ref_cmd',
-           'diff_cmd', 'show_cmd']
+           'diff_cmd', 'show_cmd', 'merge_cmd', 'clone_cmd', 'pull_cmd', 'push_cmd', 'remote_cmd']

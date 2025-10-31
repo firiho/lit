@@ -144,7 +144,10 @@ def repo_with_commits(repo_with_config):
         message="Second commit"
     )
     commit_hash2 = repo.write_object(commit2)
-    repo.head_file.write_text(commit_hash2 + "\n")
+    
+    # Set up main branch and HEAD to point to it
+    repo.refs.write_ref("refs/heads/main", commit_hash2)
+    repo.head_file.write_text("ref: refs/heads/main\n")
     
     # Update repo.index to have current state (already written to disk by add_file)
     repo.index = index
@@ -213,8 +216,17 @@ def make_commit(repo, message="Test commit"):
         message=message
     )
     
-    # Write commit and update HEAD
+    # Write commit and update HEAD/branch
     commit_hash = repo.write_object(commit)
-    repo.head_file.write_text(commit_hash + "\n")
+    
+    # Check if HEAD points to a branch
+    head_content = repo.head_file.read_text().strip()
+    if head_content.startswith('ref: refs/heads/'):
+        # Update the branch reference
+        branch_name = head_content[16:]
+        repo.refs.write_ref(f'refs/heads/{branch_name}', commit_hash)
+    else:
+        # Detached HEAD - just update HEAD
+        repo.head_file.write_text(commit_hash + "\n")
     
     return commit_hash

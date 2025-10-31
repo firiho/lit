@@ -323,15 +323,9 @@ class CLI:
    - Merge commit creation
    - Abort merge
 
-4. **Reset Command**
-   - `lit reset` (soft/mixed/hard)
-   - Move HEAD and branch
-   - Update index and working directory
-
 **Deliverables**:
 - Working `lit merge`
 - Conflict detection and markers
-- Working `lit reset`
 
 ---
 
@@ -351,69 +345,78 @@ class CLI:
    - Setup remote tracking
    - Checkout default branch
 
-3. **Fetch Command**
-   - `lit fetch`
-   - Connect to remote
-   - Discover remote references
-   - Download missing objects
-   - Update remote-tracking branches
-
-4. **Pull Command**
+3. **Pull Command**
    - `lit pull`
    - Fetch + merge
    - Handle conflicts
 
-5. **Push Command**
+4. **Push Command**
    - `lit push`
    - Check fast-forward
    - Upload missing objects
    - Update remote references
    - Handle rejection
 
-6. **Network Protocol**
-   - Simple HTTP-based protocol
-   - Pack file format (efficiency)
-   - Object compression
-   - Capability negotiation
-
 **Deliverables**:
+- Working `lit remote`
 - Working `lit clone`
-- Working `lit fetch`
 - Working `lit pull`
 - Working `lit push`
-- Network protocol implementation
 
 ---
 
 ### Phase 7: Advanced Features (Week 13-14)
 **Goal**: Additional useful features
 
-1. **Stash**
+2. **Fetch Command**
+   - `lit fetch`
+   - Connect to remote
+   - Discover remote references
+   - Download missing objects
+   - Update remote-tracking branches
+
+3. **Network Protocol**
+   - Simple HTTP-based protocol
+   - Pack file format (efficiency)
+   - Object compression
+   - Capability negotiation
+
+4. **Stash**
    - `lit stash` (save/list/apply/pop)
    - Store working directory changes
    - Apply stashed changes
 
-2. **Cherry-pick**
+5. **Cherry-pick**
    - `lit cherry-pick <commit>`
    - Apply specific commit
 
-3. **Rebase** (Basic)
+6. **Rebase** (Basic)
    - `lit rebase <branch>`
    - Replay commits
 
-4. **Tags**
+7. **Reset Command**
+   - `lit reset` (soft/mixed/hard)
+   - Move HEAD and branch
+   - Update index and working directory
+
+8. **Tags**
    - `lit tag` (lightweight/annotated)
    - Tag management
 
-5. **Ignore Files**
+9. **Ignore Files**
    - `.litignore` support
    - Pattern matching
    - Global ignore
 
 **Deliverables**:
+- Working `lit remote`
+- Working `lit fetch`
 - Working `lit stash`
+- Working `lit cherry-pick`
+- Working `lit rebase`
+- Working `lit reset`
 - Working `lit tag`
-- `.litignore` functionality
+- Working `.litignore`
 
 ---
 
