@@ -53,8 +53,14 @@ cd lit
 python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install in development mode
-pip install -e .
+# Upgrade pip
+pip install --upgrade pip
+
+# Install lit package
+pip install . # You might need updated pip version
+
+# Install development dependencies
+pip install -r requirements.txt
 
 # Verify installation
 lit --version
@@ -74,164 +80,45 @@ python -m pytest tests/unit/
 python -m pytest tests/integration/
 ```
 
-## Quick Start
+## Quick Example: Team Workflow
 
 ```bash
-# Configure user information
-lit config user.name "Your Name"
-lit config user.email "your.email@example.com"
-
-# Initialize a new repository
-lit init my-project
-cd my-project
-
-# Create and stage files
-echo "# My Project" > README.md
-lit add README.md
-lit commit -m "Initial commit"
-
-# View status and history
-lit status
-lit log
-```
-
-## Comprehensive Example: Team Collaboration Workflow
-
-This example demonstrates Lit's distributed capabilities with a central bare repository and multiple developers.
-
-### Setup: Create Central Repository
-
-```bash
-# Developer creates initial project
-mkdir demo
-cd demo
+# Setup: Create central repo
+mkdir project && cd project
 lit init
-lit config user.name "Project Creator"
-lit config user.email "creator@example.com"
-
-# Create initial project structure
-echo "# Demo Project" > README.md
-echo "print('Hello, Lit!')" > app.py
-lit add README.md app.py
-lit commit -m "Initial project structure"
-
-# Create bare repository (central server)
-cd ..
-lit clone --bare demo demo.lit
-```
-
-### Developer A: Clone and Add Features
-
-```bash
-# Clone from central repository
-lit clone demo.lit devA
-cd devA
-
-# Configure developer identity
-lit config user.name "Alice"
-lit config user.email "alice@example.com"
-
-# Create feature branch
-lit branch feature-auth
-lit checkout feature-auth
-
-# Develop authentication feature
-echo "def login(user, password):\n    return True" > auth.py
-lit add auth.py
-lit commit -m "Add authentication module"
-
-# Add more functionality
-echo "def logout(user):\n    return True" >> auth.py
-lit add auth.py
-lit commit -m "Add logout function"
-
-# View commit history
-lit log --oneline
-
-# Push feature branch to central repository
-lit push origin feature-auth
-
-# Merge into main and push
-lit checkout main
-lit merge feature-auth
-lit push origin main
-```
-
-### Developer B: Clone, Branch, and Collaborate
-
-```bash
-# Clone from central repository
-cd ../
-lit clone demo.lit devB
-cd devB
-
-# Configure developer identity  
-lit config user.name "Bob"
-lit config user.email "bob@example.com"
-
-# Pull latest changes from Developer A
-lit pull origin main
-
-# Create feature branch for database
-lit branch feature-database
-lit checkout feature-database
-
-# Develop database feature
-echo "class Database:\n    def __init__(self):\n        self.data = {}" > database.py
-lit add database.py
-lit commit -m "Add database class"
-
-# Check differences
-lit diff main
-
-# Integrate app with database
-echo "from database import Database\ndb = Database()" >> app.py
+create app.py
+Write "Hello World" in app.py
 lit add app.py
-lit commit -m "Integrate database with app"
+lit commit -m "Initial commit"
+cd .. && lit clone --bare project server.lit
 
-# View branch history
-lit log --graph
-
-# Push feature to central repo
-lit push origin feature-database
-
-# Merge into main
-lit checkout main
-lit merge feature-database
+# DevA: Feature branch workflow
+lit clone server.lit devA && cd devA
+lit config set user.name "Dev A"
+lit config set user.email "devA@example.com"
+lit checkout -b feature-auth
+Write login() in auth.py
+lit add auth.py && lit commit -m "Add auth"
+lit push origin feature-auth
+lit checkout main && lit merge feature-auth
 lit push origin main
-```
 
-### Developer A: Pull Updates and View Changes
-
-```bash
-cd ../devA
-
-# Pull Developer B's changes
+# DevB: Parallel development
+cd .. && lit clone server.lit devB && cd devB
 lit pull origin main
+lit checkout -b feature-db
+Write Database class in db.py
+lit add db.py && lit commit -m "Add database" --author "Dev B <devB@example.com>"
+lit push origin feature-db && lit checkout main
+lit merge feature-db && lit push origin main
 
-# View combined history
+# DevA: Sync changes
+cd ../devA && lit pull origin main
 lit log --graph --all
-
-# Check differences between branches
-lit diff feature-auth main
-
-# View specific commit details
-lit show HEAD
-
-# Check current repository status
-lit status
+lit diff HEAD~2 HEAD
 ```
 
-### Key Operations Demonstrated
-
-This workflow showcases:
-- ✅ **Bare repository creation** with `clone --bare`
-- ✅ **Multiple developers** with different identities
-- ✅ **Branch-based development** with feature branches
-- ✅ **Distributed collaboration** via push/pull
-- ✅ **Merge operations** combining features
-- ✅ **History tracking** with log and diff
-- ✅ **Remote synchronization** with central repository
+**Demonstrates:** Bare repos • Branching • Push/Pull • Merging • Distributed collaboration
 
 ## Command Reference
 
