@@ -31,7 +31,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -e .
 ```
 
-### Using pip
+### Using pip -- not available yet (There is another lit :( )
 
 ```bash
 pip install lit
@@ -84,21 +84,6 @@ flake8 lit/ tests/
 
 # Type check
 mypy lit/
-```
-
-### Project Structure
-
-```
-lit/
-├── lit/                    # Main package
-│   ├── core/              # Core functionality (objects, repository, index)
-│   ├── operations/        # High-level operations (diff, merge, etc.)
-│   ├── remote/            # Remote operations
-│   ├── cli/               # CLI interface
-│   └── utils/             # Utility functions
-├── tests/                 # Test suite
-├── docs/                  # Documentation
-└── GIT_IMPLEMENTATION_PLAN.md  # Detailed implementation plan
 ```
 
 ## Usage Examples
@@ -179,10 +164,10 @@ lit push origin main
 ## Implementation Status
 
 - [x] Phase 1: Foundation (Object storage, repository structure)
-- [ ] Phase 2: Staging and Committing
-- [ ] Phase 3: History and Branches
-- [ ] Phase 4: Diffing
-- [ ] Phase 5: Merging
+- [x] Phase 2: Staging and Committing
+- [x] Phase 3: History and Branches
+- [x] Phase 4: Diffing
+- [x] Phase 5: Merging
 - [ ] Phase 6: Remote Operations
 - [ ] Phase 7: Advanced Features
 - [ ] Phase 8: Polish and Optimization
