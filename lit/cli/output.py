@@ -4,19 +4,19 @@ from colorama import Fore, Style
 
 # ASCII art banner for Lit CLI
 BANNER = f"""
-{Fore.YELLOW}╔════════════════════════════════════════════════╗{Style.RESET_ALL}
-{Fore.YELLOW}║{Style.RESET_ALL}                                                {Fore.YELLOW}║{Style.RESET_ALL}
-{Fore.YELLOW}║{Style.RESET_ALL}   {Fore.CYAN}{Style.BRIGHT}██╗     ██╗████████╗{Style.RESET_ALL}                         {Fore.YELLOW}║{Style.RESET_ALL}
-{Fore.YELLOW}║{Style.RESET_ALL}   {Fore.CYAN}{Style.BRIGHT}██║     ██║╚══██╔══╝{Style.RESET_ALL}                         {Fore.YELLOW}║{Style.RESET_ALL}
-{Fore.YELLOW}║{Style.RESET_ALL}   {Fore.CYAN}{Style.BRIGHT}██║     ██║   ██║   {Style.RESET_ALL}                         {Fore.YELLOW}║{Style.RESET_ALL}
-{Fore.YELLOW}║{Style.RESET_ALL}   {Fore.CYAN}{Style.BRIGHT}██║     ██║   ██║   {Style.RESET_ALL}                         {Fore.YELLOW}║{Style.RESET_ALL}
-{Fore.YELLOW}║{Style.RESET_ALL}   {Fore.CYAN}{Style.BRIGHT}███████╗██║   ██║   {Style.RESET_ALL}                         {Fore.YELLOW}║{Style.RESET_ALL}
-{Fore.YELLOW}║{Style.RESET_ALL}   {Fore.CYAN}{Style.BRIGHT}╚══════╝╚═╝   ╚═╝   {Style.RESET_ALL}                         {Fore.YELLOW}║{Style.RESET_ALL}
-{Fore.YELLOW}║{Style.RESET_ALL}                                                {Fore.YELLOW}║{Style.RESET_ALL}
-{Fore.YELLOW}║{Style.RESET_ALL}   {Fore.WHITE}{Style.BRIGHT}A Git-like Version Control System{Style.RESET_ALL}            {Fore.YELLOW}║{Style.RESET_ALL}
-{Fore.YELLOW}║{Style.RESET_ALL}           {Fore.GREEN}by Flambeau Iriho{Style.RESET_ALL}                    {Fore.YELLOW}║{Style.RESET_ALL}
-{Fore.YELLOW}║{Style.RESET_ALL}                                                {Fore.YELLOW}║{Style.RESET_ALL}
-{Fore.YELLOW}╚════════════════════════════════════════════════╝{Style.RESET_ALL}
+{Fore.YELLOW}╔═══════════════════════════════════════════╗{Style.RESET_ALL}
+{Fore.YELLOW}║{Style.RESET_ALL}                                           {Fore.YELLOW}║{Style.RESET_ALL}
+{Fore.YELLOW}║{Style.RESET_ALL}           {Fore.CYAN}{Style.BRIGHT}██╗     ██╗████████╗{Style.RESET_ALL}            {Fore.YELLOW}║{Style.RESET_ALL}
+{Fore.YELLOW}║{Style.RESET_ALL}           {Fore.CYAN}{Style.BRIGHT}██║     ██║╚══██╔══╝{Style.RESET_ALL}            {Fore.YELLOW}║{Style.RESET_ALL}
+{Fore.YELLOW}║{Style.RESET_ALL}           {Fore.CYAN}{Style.BRIGHT}██║     ██║   ██║   {Style.RESET_ALL}            {Fore.YELLOW}║{Style.RESET_ALL}
+{Fore.YELLOW}║{Style.RESET_ALL}           {Fore.CYAN}{Style.BRIGHT}██║     ██║   ██║   {Style.RESET_ALL}            {Fore.YELLOW}║{Style.RESET_ALL}
+{Fore.YELLOW}║{Style.RESET_ALL}           {Fore.CYAN}{Style.BRIGHT}███████╗██║   ██║   {Style.RESET_ALL}            {Fore.YELLOW}║{Style.RESET_ALL}
+{Fore.YELLOW}║{Style.RESET_ALL}           {Fore.CYAN}{Style.BRIGHT}╚══════╝╚═╝   ╚═╝   {Style.RESET_ALL}            {Fore.YELLOW}║{Style.RESET_ALL}
+{Fore.YELLOW}║{Style.RESET_ALL}                                           {Fore.YELLOW}║{Style.RESET_ALL}
+{Fore.YELLOW}║{Style.RESET_ALL}   {Fore.WHITE}{Style.BRIGHT}A Git-like Version Control System{Style.RESET_ALL}       {Fore.YELLOW}║{Style.RESET_ALL}
+{Fore.YELLOW}║{Style.RESET_ALL}           {Fore.GREEN}by Flambeau Iriho{Style.RESET_ALL}               {Fore.YELLOW}║{Style.RESET_ALL}
+{Fore.YELLOW}║{Style.RESET_ALL}                                           {Fore.YELLOW}║{Style.RESET_ALL}
+{Fore.YELLOW}╚═══════════════════════════════════════════╝{Style.RESET_ALL}
 """
 
 
