@@ -32,6 +32,26 @@ class Repository:
         self.head_file = self.lit_dir / 'HEAD'
         self.index_file = self.lit_dir / 'index'
         self.config_file = self.lit_dir / 'config'
+        
+        # Initialize RefManager (lazy loading to avoid circular import)
+        self._ref_manager = None
+        self._diff_engine = None
+    
+    @property
+    def refs(self):
+        """Get RefManager instance."""
+        if self._ref_manager is None:
+            from .refs import RefManager
+            self._ref_manager = RefManager(self)
+        return self._ref_manager
+    
+    @property
+    def diff(self):
+        """Get DiffEngine instance."""
+        if self._diff_engine is None:
+            from .diff import DiffEngine
+            self._diff_engine = DiffEngine(self)
+        return self._diff_engine
     
     def init(self) -> 'Repository':
         """

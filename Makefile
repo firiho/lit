@@ -23,10 +23,10 @@ install-dev:
 	pip install -e ".[dev]"
 
 test:
-	pytest
+	python -m pytest -q --tb=no
 
 test-cov:
-	pytest --cov=lit --cov-report=html --cov-report=term-missing
+	python -m pytest --cov=lit --cov-report=html --cov-report=term-missing
 
 clean:
 	rm -rf build/
@@ -37,6 +37,7 @@ clean:
 	rm -rf .mypy_cache/
 	rm -rf tmp/
 	rm -rf test-*/
+	rm -f .coverage
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 	find . -type d -name ".lit" -exec rm -rf {} +

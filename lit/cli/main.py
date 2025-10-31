@@ -4,7 +4,9 @@ import click
 from colorama import init
 
 from lit.cli.output import BANNER, success, info, warning, error
-from lit.cli.commands import init_cmd
+from lit.cli.commands import (init_cmd, add_cmd, commit_cmd, config_cmd, 
+                              status_cmd, log_cmd, branch_cmd, checkout_cmd, switch_cmd,
+                              show_ref_cmd, symbolic_ref_cmd, diff_cmd, show_cmd)
 
 # Initialize colorama for cross-platform colored output
 init(autoreset=True)
@@ -27,15 +29,18 @@ def cli():
 
 # Register commands
 cli.add_command(init_cmd)
-
-
-@cli.command()
-def placeholder():
-    """Testing commands"""
-    click.echo(success("Lit - Phase 1 Setup Complete!"))
-    click.echo(warning("Core functionality will be implemented in Phase 1 Step 2."))
-    click.echo(info("Colorama is working! 🎨"))
-
+cli.add_command(add_cmd)
+cli.add_command(commit_cmd)
+cli.add_command(config_cmd)
+cli.add_command(status_cmd)
+cli.add_command(log_cmd)
+cli.add_command(branch_cmd)
+cli.add_command(checkout_cmd)
+cli.add_command(switch_cmd)
+cli.add_command(show_ref_cmd)
+cli.add_command(symbolic_ref_cmd)
+cli.add_command(diff_cmd)
+cli.add_command(show_cmd)
 
 def main():
     """Main entry point."""
