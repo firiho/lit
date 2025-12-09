@@ -2,7 +2,7 @@
 
 import pytest
 from pathlib import Path
-from lit.core.diff import DiffEngine, DiffHunk, FileDiff
+from lit.operations.diff import DiffEngine, DiffHunk, FileDiff
 from lit.core.objects import Blob, Tree, TreeEntry
 
 

@@ -3,11 +3,34 @@
 import pytest
 import tempfile
 import shutil
+import os
 from pathlib import Path
 from collections import defaultdict
 from lit.core.repository import Repository
 from lit.core.objects import Blob, Tree, Commit
 from lit.core.index import Index
+
+
+# Store original cwd
+_original_cwd = os.getcwd()
+
+
+@pytest.fixture(autouse=True)
+def reset_cwd():
+    """Reset current working directory before and after each test."""
+    # Before test: ensure we're in a valid directory
+    try:
+        os.getcwd()
+    except (FileNotFoundError, OSError):
+        os.chdir(_original_cwd)
+    
+    yield
+    
+    # After test: reset to original
+    try:
+        os.chdir(_original_cwd)
+    except (FileNotFoundError, OSError):
+        pass
 
 
 def build_tree_from_index(repo, index):

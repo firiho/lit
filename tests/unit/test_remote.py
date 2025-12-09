@@ -3,7 +3,7 @@
 import pytest
 from pathlib import Path
 from lit.core.repository import Repository
-from lit.core.remote import RemoteManager
+from lit.remote.remote import RemoteManager
 from lit.core.objects import Commit, Tree, Blob
 from lit.core.index import Index
 from tests.conftest import make_commit

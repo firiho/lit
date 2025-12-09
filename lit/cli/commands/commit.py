@@ -11,25 +11,48 @@ from lit.cli.output import success, error, info, warning
 
 
 def get_author_info():
-    """Get author name and email from environment, config, or prompt."""
+    """Get author name and email from environment, config, or prompt.
+    
+    Priority order (highest to lowest):
+    1. Environment variables (LIT_AUTHOR_NAME/EMAIL or GIT_AUTHOR_NAME/EMAIL)
+    2. Repository-local config (.lit/config)
+    3. Global config (~/.litconfig)
+    """
     name = os.environ.get('LIT_AUTHOR_NAME') or os.environ.get('GIT_AUTHOR_NAME')
     email = os.environ.get('LIT_AUTHOR_EMAIL') or os.environ.get('GIT_AUTHOR_EMAIL')
     
     if not name or not email:
-        config = configparser.ConfigParser()
+        # Read global config first (lower priority)
+        global_config_path = Path.home() / '.litconfig'
+        global_name = None
+        global_email = None
         
+        if global_config_path.exists():
+            global_config = configparser.ConfigParser()
+            global_config.read(global_config_path)
+            if global_config.has_option('user', 'name'):
+                global_name = global_config.get('user', 'name')
+            if global_config.has_option('user', 'email'):
+                global_email = global_config.get('user', 'email')
+        
+        # Read repo config second (higher priority - overrides global)
         repo = Repository.find_repository()
+        repo_name = None
+        repo_email = None
+        
         if repo and repo.config_file.exists():
-            config.read(repo.config_file)
+            repo_config = configparser.ConfigParser()
+            repo_config.read(repo.config_file)
+            if repo_config.has_option('user', 'name'):
+                repo_name = repo_config.get('user', 'name')
+            if repo_config.has_option('user', 'email'):
+                repo_email = repo_config.get('user', 'email')
         
-        global_config = Path.home() / '.litconfig'
-        if global_config.exists():
-            config.read(global_config)
-        
-        if not name and config.has_option('user', 'name'):
-            name = config.get('user', 'name')
-        if not email and config.has_option('user', 'email'):
-            email = config.get('user', 'email')
+        # Use repo config if available, otherwise fall back to global
+        if not name:
+            name = repo_name or global_name
+        if not email:
+            email = repo_email or global_email
     
     # If still missing, prompt user and save to repo config
     if not name or not email:
@@ -148,7 +171,7 @@ def update_ref(repo, ref_name, commit_hash):
 
 
 @click.command('commit')
-@click.option('-m', '--message', required=True, help='Commit message')
+@click.option('-m', '--message', help='Commit message')
 @click.option('--author', help='Author name and email (format: "Name <email>")')
 def commit_cmd(message, author):
     """
@@ -156,6 +179,8 @@ def commit_cmd(message, author):
     
     Creates a commit from the staged changes in the index.
     A commit captures a snapshot of the project at a point in time.
+    
+    During a merge, this command completes the merge by creating a merge commit.
     
     Examples:
         lit commit -m "Initial commit"
@@ -165,6 +190,26 @@ def commit_cmd(message, author):
     if not repo:
         click.echo(error("Not a lit repository"))
         raise click.Abort()
+    
+    # Check if merge is in progress
+    merge_in_progress = repo.merge.is_merge_in_progress()
+    merge_head = repo.merge.get_merge_head() if merge_in_progress else None
+    
+    # Handle message for merge commits
+    if not message:
+        if merge_in_progress:
+            # Use default merge message or from MERGE_MSG
+            merge_msg_file = repo.lit_dir / 'MERGE_MSG'
+            if merge_msg_file.exists():
+                # Read and use a clean merge message
+                current_branch = repo.refs.get_current_branch() or 'HEAD'
+                message = f"Merge commit"
+            else:
+                message = "Merge commit"
+            click.echo(info(f"Using default merge message: {message}"))
+        else:
+            click.echo(error("Commit message required. Use -m \"message\""))
+            raise click.Abort()
     
     index = Index()
     index_file = repo.index_file
@@ -191,6 +236,11 @@ def commit_cmd(message, author):
         parent = get_parent_commit(repo)
         parent_list = [parent] if parent else []
         
+        # If merge is in progress, add MERGE_HEAD as second parent
+        if merge_in_progress and merge_head:
+            parent_list.append(merge_head)
+            click.echo(info(f"Creating merge commit with parents: {parent[:7]}, {merge_head[:7]}"))
+        
         commit = Commit.create(
             tree_hash=tree_hash,
             parent_hashes=parent_list,
@@ -208,12 +258,21 @@ def commit_cmd(message, author):
         else:
             repo.head_file.write_text(commit_hash + '\n')
         
-        click.echo()
-        click.echo(success(f"Created commit {commit_hash[:7]}"))
+        # Clear merge state if merge was in progress
+        if merge_in_progress:
+            repo.merge.clear_merge_state()
+            click.echo()
+            click.echo(success(f"Merge completed! Created merge commit {commit_hash[:7]}"))
+        else:
+            click.echo()
+            click.echo(success(f"Created commit {commit_hash[:7]}"))
+        
         click.echo(info(f"Author: {author}"))
         click.echo(info(f"Message: {message}"))
         
-        if parent:
+        if len(parent_list) > 1:
+            click.echo(info(f"Parents: {', '.join(p[:7] for p in parent_list)}"))
+        elif parent:
             click.echo(info(f"Parent: {parent[:7]}"))
         else:
             click.echo(info("(root commit)"))

@@ -5,6 +5,7 @@ from pathlib import Path
 from lit.core.repository import Repository
 from lit.core.index import Index
 from lit.core.objects import Commit, Tree
+from lit.utils.ignore import get_ignore_matcher
 from lit.cli.output import success, error, info, warning
 from colorama import Fore, Style
 
@@ -88,7 +89,8 @@ def get_working_files(repo):
 
 
 @click.command('status')
-def status_cmd():
+@click.option('--ignored', is_flag=True, help='Show ignored files')
+def status_cmd(ignored):
     """
     Show the working tree status.
     
@@ -97,13 +99,19 @@ def status_cmd():
     - Changes not staged for commit (modified files)
     - Untracked files (new files not in index)
     
+    Files matching .litignore patterns are hidden unless --ignored is used.
+    
     Examples:
         lit status
+        lit status --ignored
     """
     repo = Repository.find_repository()
     if not repo:
         click.echo(error("Not a lit repository"))
         raise click.Abort()
+    
+    # Load ignore patterns
+    ignore_matcher = get_ignore_matcher(repo.work_tree)
     
     # Get HEAD tree files
     head_tree = get_head_tree(repo)
@@ -128,6 +136,7 @@ def status_cmd():
     unstaged_deleted = []
     
     untracked = []
+    ignored_files = []
     
     # Check staged changes (index vs HEAD)
     for path, index_hash in index_files.items():
@@ -152,8 +161,11 @@ def status_cmd():
             if head_files[path] != working_hash:
                 unstaged_modified.append(path)
         else:
-            # File is not in index or HEAD - it's untracked
-            untracked.append(path)
+            # File is not in index or HEAD - check if ignored
+            if ignore_matcher.is_ignored(path):
+                ignored_files.append(path)
+            else:
+                untracked.append(path)
     
     # Check for deleted files (in index but not in working directory)
     for path in index_files:
@@ -212,6 +224,17 @@ def status_cmd():
         
         for path in sorted(untracked):
             click.echo(f"  {Fore.RED}{path}{Style.RESET_ALL}")
+        
+        click.echo()
+    
+    # Show ignored files if requested
+    if ignored and ignored_files:
+        click.echo(Fore.MAGENTA + "Ignored files:" + Style.RESET_ALL)
+        click.echo(info("  (use \"lit add -f <file>...\" to force add)"))
+        click.echo()
+        
+        for path in sorted(ignored_files):
+            click.echo(f"  {Fore.MAGENTA}{path}{Style.RESET_ALL}")
         
         click.echo()
     

@@ -36,7 +36,7 @@ class RefManager:
         Read a reference and return its commit hash.
         
         Args:
-            ref_name: Reference name (e.g., 'refs/heads/main', 'HEAD', 'main')
+            ref_name: Reference name (e.g., 'refs/heads/main', 'HEAD', 'main', 'origin/main')
         
         Returns:
             Commit hash or None if reference doesn't exist
@@ -63,6 +63,13 @@ class RefManager:
         tag_path = self.tags_dir / ref_name
         if tag_path.exists() and tag_path.is_file():
             return tag_path.read_text().strip()
+        
+        # Try as remote-tracking branch (refs/remotes/<remote>/<branch>)
+        # e.g., "origin/main" -> refs/remotes/origin/main
+        if '/' in ref_name:
+            remote_path = self.refs_dir / 'remotes' / ref_name
+            if remote_path.exists() and remote_path.is_file():
+                return remote_path.read_text().strip()
         
         return None
     

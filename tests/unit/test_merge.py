@@ -3,7 +3,7 @@
 import pytest
 from pathlib import Path
 from lit.core.repository import Repository
-from lit.core.merge import MergeEngine, MergeResult, MergeConflict
+from lit.operations.merge import MergeEngine, MergeResult, MergeConflict
 from lit.core.objects import Commit, Tree, Blob
 from lit.core.index import Index
 from tests.conftest import make_commit
@@ -394,7 +394,7 @@ def test_merge_state_tracking(repo_with_commits):
     
     # Save merge state
     test_hash = "abc123"
-    from lit.core.merge import MergeConflict
+    from lit.operations.merge import MergeConflict
     conflicts = [MergeConflict("file.txt", b"base", b"ours", b"theirs")]
     
     repo.merge.save_merge_state(test_hash, conflicts)
@@ -420,7 +420,7 @@ def test_abort_merge(repo_with_commits):
     
     # Start a merge (simulate)
     test_hash = "abc123"
-    from lit.core.merge import MergeConflict
+    from lit.operations.merge import MergeConflict
     conflicts = [MergeConflict("file.txt", b"base", b"ours", b"theirs")]
     repo.merge.save_merge_state(test_hash, conflicts)
     
@@ -434,7 +434,7 @@ def test_abort_merge(repo_with_commits):
 def test_write_conflicts_to_working_tree(repo_with_commits):
     """Test writing conflict markers to files."""
     repo = repo_with_commits
-    from lit.core.merge import MergeConflict
+    from lit.operations.merge import MergeConflict
     
     # Create a conflict
     conflict = MergeConflict(

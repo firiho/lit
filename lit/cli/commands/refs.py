@@ -10,8 +10,9 @@ from colorama import Fore, Style
 @click.option('--heads', is_flag=True, help='Show only branch references')
 @click.option('--tags', is_flag=True, help='Show only tag references')
 @click.option('--head', is_flag=True, help='Show HEAD reference')
+@click.option('-r', '--remotes', is_flag=True, help='Show only remote references')
 @click.option('-d', '--dereference', is_flag=True, help='Dereference symbolic references')
-def show_ref_cmd(heads, tags, head, dereference):
+def show_ref_cmd(heads, tags, head, remotes, dereference):
     """
     Display references in the repository.
     
@@ -21,6 +22,7 @@ def show_ref_cmd(heads, tags, head, dereference):
         lit show-ref              # Show all references
         lit show-ref --heads      # Show only branches
         lit show-ref --tags       # Show only tags
+        lit show-ref --remotes    # Show only remote-tracking branches
         lit show-ref --head       # Show HEAD information
     """
     repo = Repository.find_repository()
@@ -31,8 +33,11 @@ def show_ref_cmd(heads, tags, head, dereference):
     refs_mgr = repo.refs
     shown_any = False
     
+    # Determine what to show (if no filter specified, show all)
+    show_all = not (heads or tags or head or remotes)
+    
     # Show HEAD
-    if head or (not heads and not tags):
+    if head or show_all:
         head_info = refs_mgr.get_ref_info('HEAD')
         if head_info['exists']:
             shown_any = True
@@ -43,7 +48,7 @@ def show_ref_cmd(heads, tags, head, dereference):
                 click.echo(f"{head_info['target']} {Fore.YELLOW}HEAD (detached){Style.RESET_ALL}")
     
     # Show branches
-    if heads or (not heads and not tags and not head):
+    if heads or show_all:
         branches = refs_mgr.list_branches()
         if branches:
             shown_any = True
@@ -51,8 +56,23 @@ def show_ref_cmd(heads, tags, head, dereference):
                 ref_name = f"refs/heads/{branch_name}"
                 click.echo(f"{commit_hash} {Fore.GREEN}{ref_name}{Style.RESET_ALL}")
     
+    # Show remote-tracking branches
+    if remotes or show_all:
+        remotes_dir = repo.remotes_dir
+        if remotes_dir.exists():
+            for remote_dir in sorted(remotes_dir.iterdir()):
+                if remote_dir.is_dir():
+                    remote_name = remote_dir.name
+                    for branch_file in sorted(remote_dir.iterdir()):
+                        if branch_file.is_file():
+                            branch_name = branch_file.name
+                            commit_hash = branch_file.read_text().strip()
+                            ref_name = f"refs/remotes/{remote_name}/{branch_name}"
+                            shown_any = True
+                            click.echo(f"{commit_hash} {Fore.RED}{ref_name}{Style.RESET_ALL}")
+    
     # Show tags
-    if tags or (not heads and not tags and not head):
+    if tags or show_all:
         tag_list = refs_mgr.list_tags()
         if tag_list:
             shown_any = True

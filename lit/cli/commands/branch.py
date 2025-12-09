@@ -1,6 +1,7 @@
 """Branch command - manage branches."""
 
 import click
+import re
 from pathlib import Path
 from lit.core.repository import Repository
 from lit.core.objects import Commit
@@ -82,6 +83,65 @@ def find_commit_by_prefix(repo, prefix):
     return None
 
 
+def resolve_ref(repo, ref_str):
+    """
+    Resolve a reference to a commit hash.
+    
+    Supports:
+    - Branch names (main, feature)
+    - Commit hash prefixes (abc123)
+    - HEAD~N syntax (HEAD~1, HEAD~2)
+    - branch~N syntax (main~1, feature~2)
+    
+    Returns commit hash or None if not found.
+    """
+    if not ref_str:
+        return None
+    
+    # Check for ~N suffix (HEAD~1, main~2, etc.)
+    tilde_match = re.match(r'^(.+)~(\d+)$', ref_str)
+    if tilde_match:
+        base_ref = tilde_match.group(1)
+        n = int(tilde_match.group(2))
+        
+        # Resolve the base reference first
+        if base_ref.upper() == 'HEAD':
+            base_hash = repo.refs.resolve_head()
+        else:
+            # Try as branch name
+            branch_file = repo.lit_dir / 'refs' / 'heads' / base_ref
+            if branch_file.exists():
+                base_hash = branch_file.read_text().strip()
+            else:
+                # Try as commit hash
+                base_hash = find_commit_by_prefix(repo, base_ref)
+        
+        if not base_hash:
+            return None
+        
+        # Walk back N commits
+        current_hash = base_hash
+        for _ in range(n):
+            commit = repo.read_object(current_hash)
+            if not isinstance(commit, Commit) or not commit.parents:
+                return None
+            current_hash = commit.parents[0]
+        
+        return current_hash
+    
+    # Try as HEAD
+    if ref_str.upper() == 'HEAD':
+        return repo.refs.resolve_head()
+    
+    # Try as branch name
+    branch_file = repo.lit_dir / 'refs' / 'heads' / ref_str
+    if branch_file.exists():
+        return branch_file.read_text().strip()
+    
+    # Try as commit hash prefix
+    return find_commit_by_prefix(repo, ref_str)
+
+
 def branch_exists(repo, branch_name):
     """Check if a branch exists."""
     branch_file = repo.lit_dir / 'refs' / 'heads' / branch_name
@@ -97,10 +157,10 @@ def create_branch(repo, branch_name, start_point=None):
     
     # Determine starting commit
     if start_point:
-        # Try to resolve commit hash
-        commit_hash = find_commit_by_prefix(repo, start_point)
+        # Try to resolve reference (supports HEAD~N, branch~N, commit hashes)
+        commit_hash = resolve_ref(repo, start_point)
         if not commit_hash:
-            click.echo(error(f"Not a valid commit: {start_point}"))
+            click.echo(error(f"Not a valid commit or reference: {start_point}"))
             raise click.Abort()
     else:
         # Use current HEAD
@@ -158,23 +218,47 @@ def delete_branch(repo, branch_name, force=False):
     branch_file.unlink()
 
 
+def get_remote_branches(repo):
+    """Get list of all remote-tracking branches with their commit hashes."""
+    remotes_dir = repo.lit_dir / 'refs' / 'remotes'
+    
+    if not remotes_dir.exists():
+        return []
+    
+    branches = []
+    for remote_dir in remotes_dir.iterdir():
+        if remote_dir.is_dir():
+            remote_name = remote_dir.name
+            for branch_file in remote_dir.iterdir():
+                if branch_file.is_file():
+                    branch_name = branch_file.name
+                    commit_hash = branch_file.read_text().strip()
+                    full_name = f"{remote_name}/{branch_name}"
+                    branches.append((full_name, commit_hash))
+    
+    return sorted(branches, key=lambda x: x[0])
+
+
 @click.command('branch')
 @click.option('-d', '--delete', 'delete_branch_name', metavar='BRANCH', help='Delete a branch')
 @click.option('-D', '--force-delete', 'force_delete_name', metavar='BRANCH', help='Force delete a branch')
 @click.option('-v', '--verbose', is_flag=True, help='Show commit hash and message')
-@click.option('-a', '--all', is_flag=True, help='List all branches (including remote)')
+@click.option('-a', '--all', 'show_all', is_flag=True, help='List all branches (including remote)')
+@click.option('-r', '--remotes', is_flag=True, help='List only remote-tracking branches')
 @click.argument('branch_name', required=False)
 @click.argument('start_point', required=False)
-def branch_cmd(delete_branch_name, force_delete_name, verbose, all, branch_name, start_point):
+def branch_cmd(delete_branch_name, force_delete_name, verbose, show_all, remotes, branch_name, start_point):
     """
     List, create, or delete branches.
     
-    With no arguments, lists all branches. Current branch is highlighted with *.
+    With no arguments, lists all local branches. Current branch is highlighted with *.
     With one argument, creates a new branch at HEAD.
     With two arguments, creates a new branch at the specified commit.
     
     Examples:
-        lit branch                    # List all branches
+        lit branch                    # List local branches
+        lit branch -r                 # List remote-tracking branches
+        lit branch -a                 # List all branches (local and remote)
         lit branch feature            # Create 'feature' branch at HEAD
         lit branch hotfix abc123      # Create 'hotfix' branch at commit abc123
         lit branch -d feature         # Delete 'feature' branch
@@ -203,26 +287,47 @@ def branch_cmd(delete_branch_name, force_delete_name, verbose, all, branch_name,
         return
     
     # List branches
-    branches = get_all_branches(repo)
-    
-    if not branches:
-        click.echo(warning("No branches found"))
-        return
-    
     current_branch = get_current_branch(repo)
     
-    for branch_name, commit_hash in branches:
-        is_current = branch_name == current_branch
+    # List local branches (unless -r flag)
+    if not remotes:
+        branches = get_all_branches(repo)
         
-        if is_current:
-            prefix = f"{Fore.GREEN}* {Style.RESET_ALL}"
-            name_color = Fore.GREEN
-        else:
+        if not branches and not show_all and not remotes:
+            click.echo(warning("No branches found"))
+            return
+        
+        for branch_name, commit_hash in branches:
+            is_current = branch_name == current_branch
+            
+            if is_current:
+                prefix = f"{Fore.GREEN}* {Style.RESET_ALL}"
+                name_color = Fore.GREEN
+            else:
+                prefix = "  "
+                name_color = ""
+            
+            if verbose:
+                commit_msg = get_commit_info(repo, commit_hash)
+                click.echo(f"{prefix}{name_color}{branch_name:<20}{Style.RESET_ALL} {commit_hash[:7]} {commit_msg}")
+            else:
+                click.echo(f"{prefix}{name_color}{branch_name}{Style.RESET_ALL}")
+    
+    # List remote branches (if -r or -a flag)
+    if remotes or show_all:
+        remote_branches = get_remote_branches(repo)
+        
+        if not remote_branches and remotes:
+            click.echo(warning("No remote-tracking branches found"))
+            click.echo(info("Use 'lit fetch' to update remote-tracking branches"))
+            return
+        
+        for branch_name, commit_hash in remote_branches:
             prefix = "  "
-            name_color = ""
-        
-        if verbose:
-            commit_msg = get_commit_info(repo, commit_hash)
-            click.echo(f"{prefix}{name_color}{branch_name:<20}{Style.RESET_ALL} {commit_hash[:7]} {commit_msg}")
-        else:
-            click.echo(f"{prefix}{name_color}{branch_name}{Style.RESET_ALL}")
+            name_color = Fore.RED
+            
+            if verbose:
+                commit_msg = get_commit_info(repo, commit_hash)
+                click.echo(f"{prefix}{name_color}{branch_name:<20}{Style.RESET_ALL} {commit_hash[:7]} {commit_msg}")
+            else:
+                click.echo(f"{prefix}{name_color}{branch_name}{Style.RESET_ALL}")

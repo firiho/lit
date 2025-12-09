@@ -51,7 +51,7 @@ class Repository:
     def diff(self):
         """Get DiffEngine instance."""
         if self._diff_engine is None:
-            from .diff import DiffEngine
+            from lit.operations.diff import DiffEngine
             self._diff_engine = DiffEngine(self)
         return self._diff_engine
     
@@ -59,7 +59,7 @@ class Repository:
     def merge(self):
         """Get MergeEngine instance."""
         if self._merge_engine is None:
-            from .merge import MergeEngine
+            from lit.operations.merge import MergeEngine
             self._merge_engine = MergeEngine(self)
         return self._merge_engine
     
@@ -67,7 +67,7 @@ class Repository:
     def remote(self):
         """Get RemoteManager instance."""
         if self._remote_manager is None:
-            from .remote import RemoteManager
+            from lit.remote.remote import RemoteManager
             self._remote_manager = RemoteManager(self)
         return self._remote_manager
     

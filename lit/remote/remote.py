@@ -4,7 +4,7 @@ import shutil
 import configparser
 from pathlib import Path
 from typing import Optional, Dict, List
-from .repository import Repository
+from lit.core.repository import Repository
 
 
 class RemoteManager:
@@ -236,7 +236,7 @@ class RemoteManager:
                         dest_repo.head_file.write_text(f'ref: refs/heads/{default_branch}\n')
                         
                         # Checkout the default branch
-                        from .objects import Commit
+                        from lit.core.objects import Commit
                         commit = dest_repo.read_object(commit_hash)
                         if isinstance(commit, Commit):
                             self._checkout_commit(dest_repo, commit)
@@ -245,8 +245,8 @@ class RemoteManager:
     
     def _checkout_commit(self, repo: Repository, commit):
         """Checkout a commit to the working directory."""
-        from .objects import Tree, Blob
-        from .index import Index
+        from lit.core.objects import Tree, Blob
+        from lit.core.index import Index
         
         # Clear working directory (except .lit)
         for item in repo.work_tree.iterdir():
@@ -268,7 +268,7 @@ class RemoteManager:
     
     def _restore_tree(self, repo: Repository, tree, path: Path):
         """Recursively restore tree to working directory."""
-        from .objects import Tree, Blob
+        from lit.core.objects import Tree, Blob
         
         for entry in tree.entries:
             entry_path = path / entry.name
@@ -282,7 +282,7 @@ class RemoteManager:
     
     def _index_tree(self, repo: Repository, tree, index, prefix: str):
         """Recursively add tree entries to index."""
-        from .objects import Tree, Blob
+        from lit.core.objects import Tree, Blob
         
         for entry in tree.entries:
             path = f"{prefix}{entry.name}" if prefix else entry.name
