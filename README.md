@@ -92,60 +92,107 @@ python -m pytest tests/unit/
 python -m pytest tests/integration/
 ```
 
-## Quick Example: Team Workflow
+## Quick Example: Merge Conflict & Auto-Resolution
 
 ```bash
-# Setup: Create central repo
+# ============================================================
+# Setup: Create a clean workspace in tmp folder
+# ============================================================
+mkdir tmp && cd tmp
+
+# Create and initialize the "origin" project repository
 mkdir project && cd project
 lit init
-echo "print('Hello World')" > app.py
+lit config set user.name "Project Owner"
+lit config set user.email "owner@example.com"
+echo "print('Hello')" > app.py
 lit add app.py
 lit commit -m "Initial commit"
-cd .. && lit clone --bare project server.lit
 
-# DevA: Feature branch workflow
+# Create a bare "server" repository (simulates GitHub/remote)
+cd ..
+lit clone --bare project server.lit
+
+# ============================================================
+# DevA: Clone and create a feature branch
+# ============================================================
 lit clone server.lit devA && cd devA
 lit config set user.name "Dev A"
 lit config set user.email "devA@example.com"
-lit checkout -b feature-auth
-echo "def login(): pass" > auth.py
-lit add auth.py && lit commit -m "Add auth"
-lit push origin feature-auth
 
-# Stash work in progress
-echo "work in progress" > wip.py
-lit stash push -m "WIP: new feature"
-lit stash list
+# DevA modifies app.py on a feature branch
+lit checkout -b feature-greeting
+echo "print('Hello from DevA!')" > app.py
+lit add app.py && lit commit -m "Update greeting - DevA version"
+lit push origin feature-greeting
 
-# Complete the feature
-lit stash pop
-lit add . && lit commit -m "Complete feature"
-lit checkout main && lit merge feature-auth
+# ============================================================
+# DevB: Clone and create a different feature branch
+# ============================================================
+cd ..
+lit clone server.lit devB && cd devB
+lit config set user.name "Dev B"
+lit config set user.email "devB@example.com"
+
+# DevB modifies the SAME line differently (conflict incoming!)
+lit checkout -b feature-greeting-alt
+echo "print('Hello from DevB!')" > app.py
+lit add app.py && lit commit -m "Update greeting - DevB version"
+lit push origin feature-greeting-alt
+
+# ============================================================
+# DevA: Merge their feature into main and push
+# ============================================================
+cd ../devA
+lit checkout main
+lit merge feature-greeting    # Fast-forward merge
 lit push origin main
 
-# DevB: Parallel development with rebase
-cd .. && lit clone server.lit devB && cd devB
-lit checkout -b feature-db
-echo "class Database: pass" > db.py
-lit add db.py && lit commit -m "Add database"
-
-# Sync with main using rebase
+# ============================================================
+# DevA: Try to merge DevB's changes - CONFLICT!
+# ============================================================
 lit fetch origin
-lit rebase origin/main
-lit push origin feature-db
+lit merge origin/feature-greeting-alt
+# Output: CONFLICT (content): Merge conflict in app.py
 
-# Create release tag
-lit checkout main && lit merge feature-db
-lit tag -a v1.0 -m "First release"
+# Inspect the conflict markers
+cat app.py
+# <<<<<<< HEAD
+# print('Hello from DevA!')
+# =======
+# print('Hello from DevB!')
+# >>>>>>> origin/feature-greeting-alt
+
+# ============================================================
+# Resolve conflict using auto-merge (You can also use normal IDE resolution and then do `lit add app.py` and commit the merge)
+# ============================================================
+lit merge --abort
+lit merge origin/feature-greeting-alt --auto
+# Auto-merge successful!
+
+cat app.py
+# print('Hello from DevB!')  (--auto uses 'recent' strategy by default)
+
+# Complete the merge and push
+lit commit -m "Merge feature-greeting-alt with auto-resolution"
 lit push origin main
 
-# DevA: Sync changes
-cd ../devA && lit pull origin main
-lit log --graph --all
-lit diff HEAD~2 HEAD
+# Go back to devB
+cd ../DevB
+lit checkout main
+lit pull
+
+# ============================================================
+# View the final result
+# ============================================================
+lit log --graph --all --oneline
+lit show HEAD
+
+# Cleanup when done (optional)
+make clean
 ```
 
-**Demonstrates:** Bare repos • Branching • Push/Pull • Stashing • Rebasing • Tags • Distributed collaboration
+**Demonstrates:** Bare repos • Branching • Push/Pull • Merge conflicts • Conflict markers • Auto-merge resolution • Distributed collaboration
 
 ## Command Reference
 

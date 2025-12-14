@@ -1,18 +1,4 @@
-"""Merge operations for Lit VCS.
-
-Current Implementation:
-    ✅ Fast-forward merges (automatic when possible)
-    ✅ Three-way merges (clean merges without conflicts)
-    ✅ Merge base finding (common ancestor algorithm)
-    ✅ Conflict detection
-    ✅ Merge abort functionality
-    
-Upcoming Features:
-    🚧 Conflict resolution workflow
-    🚧 Interactive conflict resolution
-    🚧 Conflict marker editing in working tree
-    🚧 Partial merge commits after conflict resolution
-"""
+"""Merge operations for Lit VCS."""
 
 from pathlib import Path
 from typing import Optional, List, Set, Tuple, Dict
@@ -319,8 +305,8 @@ class MergeEngine:
         if auto_strategy == 'recent':
             # Compare commit timestamps if available
             try:
-                ours_time = ours_commit.committer_date if hasattr(ours_commit, 'committer_date') else 0
-                theirs_time = theirs_commit.committer_date if hasattr(theirs_commit, 'committer_date') else 0
+                ours_time = ours_commit.committer_time if hasattr(ours_commit, 'committer_time') else 0
+                theirs_time = theirs_commit.committer_time if hasattr(theirs_commit, 'committer_time') else 0
                 ours_is_recent = ours_time >= theirs_time
             except:
                 pass  # Default to ours if we can't determine
@@ -801,8 +787,12 @@ class MergeEngine:
                 message="No commits on current branch"
             )
         
-        # Get target commit
+        # Get target commit - check local branches first, then remote tracking branches
         target_hash = self.repo.refs.read_ref(f"refs/heads/{target_branch}")
+        if not target_hash:
+            # Try remote tracking branch (e.g., origin/feature-branch)
+            if '/' in target_branch:
+                target_hash = self.repo.refs.read_ref(f"refs/remotes/{target_branch}")
         if not target_hash:
             return MergeResult(
                 success=False,

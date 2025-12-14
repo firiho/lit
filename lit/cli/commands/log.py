@@ -158,9 +158,15 @@ def get_all_commits_history(repo, start_hashes, max_count=None):
 
 def build_branch_graph(repo, history, refs_map):
     """
-    Build ASCII graph showing branch structure.
+    Build ASCII graph showing branch structure similar to git log --graph.
     
-    This creates a visual representation similar to `git log --graph --all`.
+    Produces output like:
+    *   commit (merge)
+    |\  
+    | * commit on branch
+    * | commit on main
+    |/  
+    * common ancestor
     
     Returns list of (graph_line, commit_hash, commit, decorations) tuples.
     """
@@ -169,20 +175,21 @@ def build_branch_graph(repo, history, refs_map):
     
     result = []
     
-    # Build parent -> children map to detect fork points
-    children_map = defaultdict(list)
-    commit_set = set(h for h, c in history)
-    for commit_hash, commit in history:
-        for parent in commit.parents:
-            children_map[parent].append(commit_hash)
+    # Colors for different columns
+    COLORS = [
+        Fore.RED,
+        Fore.GREEN, 
+        Fore.YELLOW,
+        Fore.BLUE,
+        Fore.MAGENTA,
+        Fore.CYAN,
+    ]
     
-    # Track active branches (columns in the graph)
-    # Each entry is the commit hash we're tracking in that column
-    active_branches = []  
-    commit_to_column = {}  # Map commit hash to its column
+    # Each column tracks the commit hash it's "expecting" to see
+    columns = []
     
     for i, (commit_hash, commit) in enumerate(history):
-        # Build decorations (branch names, tags)
+        # Build decorations
         decorations = []
         if commit_hash in refs_map:
             for ref in refs_map[commit_hash]:
@@ -193,78 +200,146 @@ def build_branch_graph(repo, history, refs_map):
                 elif ref.startswith('refs/tags/'):
                     decorations.append((ref[10:], 'tag'))
         
-        # Find which column this commit should be in
-        col = commit_to_column.get(commit_hash)
+        # Find column(s) expecting this commit
+        my_cols = [c for c, h in enumerate(columns) if h == commit_hash]
         
-        if col is None:
-            # No column assigned yet - find a free one
-            if None in active_branches:
-                col = active_branches.index(None)
-                active_branches[col] = commit_hash
+        if not my_cols:
+            # New branch starting - find slot
+            if None in columns:
+                col = columns.index(None)
             else:
-                col = len(active_branches)
-                active_branches.append(commit_hash)
-            commit_to_column[commit_hash] = col
+                col = len(columns)
+                columns.append(None)
+            columns[col] = commit_hash
+            my_cols = [col]
         
-        # Build graph line - show the current state
-        graph_parts = []
+        col = my_cols[0]
         is_merge = len(commit.parents) > 1
         
-        for c in range(len(active_branches)):
-            if c == col:
-                graph_parts.append('*')
-            elif active_branches[c] is not None:
-                graph_parts.append('│')
-            else:
-                graph_parts.append(' ')
+        # === COMMIT LINE ===
+        commit_line = _render_line(columns, col, '*', COLORS)
+        result.append((commit_line, commit_hash, commit, decorations))
         
-        # For merge commits, show the merge line
-        if is_merge and len(commit.parents) > 1:
-            # Find columns of second parent
-            second_parent = commit.parents[1]
-            if second_parent in commit_to_column:
-                merge_col = commit_to_column[second_parent]
-                if merge_col < len(graph_parts) and merge_col != col:
-                    # Add merge indicator between columns
-                    pass  # The column already shows the merge parent
+        # Update columns: clear this commit
+        for c in my_cols:
+            columns[c] = None
         
-        # Find all columns that have this commit as their target and merge them
-        cols_merging = [c for c in range(len(active_branches)) if active_branches[c] == commit_hash]
-        if len(cols_merging) > 1:
-            for c in cols_merging[1:]:
-                active_branches[c] = None
-        
-        # Update active branches for parents
+        # Figure out where parents go
+        parent_positions = []
         if commit.parents:
-            # First parent continues in same column
-            first_parent = commit.parents[0]
-            active_branches[col] = first_parent
+            # First parent stays in same column
+            columns[col] = commit.parents[0]
+            parent_positions.append(col)
             
-            if first_parent not in commit_to_column:
-                commit_to_column[first_parent] = col
-            
-            # Additional parents get new columns (for merge commits)
+            # Additional parents (merge)
             for parent in commit.parents[1:]:
-                if parent not in commit_to_column:
-                    if None in active_branches:
-                        new_col = active_branches.index(None)
-                        active_branches[new_col] = parent
+                # Already tracked?
+                existing = [c for c, h in enumerate(columns) if h == parent]
+                if existing:
+                    parent_positions.append(existing[0])
+                else:
+                    # New column to the right
+                    new_col = col + 1
+                    while new_col < len(columns) and columns[new_col] is not None:
+                        new_col += 1
+                    if new_col >= len(columns):
+                        columns.append(parent)
                     else:
-                        new_col = len(active_branches)
-                        active_branches.append(parent)
-                    commit_to_column[parent] = new_col
-        else:
-            # No parents - this is a root commit, close the column
-            active_branches[col] = None
+                        columns[new_col] = parent
+                    parent_positions.append(new_col if new_col < len(columns) else len(columns) - 1)
         
-        # Clean up empty trailing columns
-        while active_branches and active_branches[-1] is None:
-            active_branches.pop()
+        # === CONNECTOR LINE FOR MERGES ===
+        if is_merge and len(parent_positions) > 1:
+            # Draw |\  line
+            connector = _render_merge_connector(columns, col, parent_positions, COLORS)
+            result.append((connector, None, None, None))
         
-        graph_line = ' '.join(graph_parts) + ' '
-        result.append((graph_line, commit_hash, commit, decorations))
+        # === CONVERGENCE LINE (when branches join back) ===
+        # Check if any columns to the right will merge into primary
+        merge_cols = [c for c in range(col + 1, len(columns)) 
+                      if columns[c] is not None and columns[c] == columns[col]]
+        if merge_cols:
+            for mc in merge_cols:
+                columns[mc] = None
+            conv_line = _render_convergence(columns, col, merge_cols, COLORS)
+            result.append((conv_line, None, None, None))
+        
+        # Trim trailing empty columns
+        while columns and columns[-1] is None:
+            columns.pop()
     
     return result
+
+
+def _render_line(columns, star_col, char, colors):
+    """
+    Render a commit line. Each column is 2 chars wide.
+    Example: "* | " for star in col 0, pipe in col 1
+    """
+    parts = []
+    for c in range(len(columns)):
+        color = colors[c % len(colors)]
+        if c == star_col:
+            parts.append(f"{color}{char}{Style.RESET_ALL} ")
+        elif columns[c] is not None:
+            parts.append(f"{color}|{Style.RESET_ALL} ")
+        else:
+            parts.append("  ")
+    return ''.join(parts)
+
+
+def _render_merge_connector(columns, primary, parent_cols, colors):
+    """
+    Render merge connector: |\  
+    The backslash connects primary column to the branch column.
+    """
+    parts = []
+    max_col = max(max(parent_cols), len(columns) - 1) if parent_cols else len(columns) - 1
+    
+    for c in range(max_col + 1):
+        color = colors[c % len(colors)]
+        
+        if c == primary:
+            # Primary column: | followed by \ pointing to branch
+            parts.append(f"{color}|{Style.RESET_ALL}")
+            parts.append(f"{colors[(primary + 1) % len(colors)]}\\{Style.RESET_ALL}")
+        elif c > primary and c in parent_cols:
+            # The branch column after the connector - just space
+            parts.append("  ")
+        elif c < len(columns) and columns[c] is not None:
+            parts.append(f"{color}|{Style.RESET_ALL} ")
+        else:
+            parts.append("  ")
+    
+    return ''.join(parts)
+
+
+def _render_convergence(columns, target, merging_cols, colors):
+    """
+    Render convergence: |/  
+    The slash shows a branch merging back.
+    """
+    parts = []
+    
+    for c in range(len(columns)):
+        color = colors[c % len(colors)]
+        
+        if c == target:
+            # Target column: | followed by / from the merging branch
+            parts.append(f"{color}|{Style.RESET_ALL}")
+            if merging_cols and min(merging_cols) == c + 1:
+                parts.append(f"{colors[(c + 1) % len(colors)]}/{Style.RESET_ALL}")
+            else:
+                parts.append(" ")
+        elif c in merging_cols:
+            # Merging column - already shown as /
+            parts.append("  ")
+        elif columns[c] is not None:
+            parts.append(f"{color}|{Style.RESET_ALL} ")
+        else:
+            parts.append("  ")
+    
+    return ''.join(parts)
 
 
 def build_commit_graph(history):
@@ -450,25 +525,23 @@ def find_commit_by_prefix(repo, prefix):
 @click.command('log')
 @click.option('-n', '--max-count', type=int, help='Limit number of commits to show')
 @click.option('--oneline', is_flag=True, help='Show commits in one-line format')
-@click.option('--graph', is_flag=True, default=True, help='Show ASCII graph (default: True)')
-@click.option('--no-graph', is_flag=True, help='Disable ASCII graph')
+@click.option('--graph', is_flag=True, help='Show ASCII graph of branch structure')
 @click.option('--all', 'show_all', is_flag=True, help='Show commits from all branches')
 @click.option('--decorate', is_flag=True, default=True, help='Show branch/tag names (default: True)')
 @click.argument('commit', required=False)
-def log_cmd(max_count, oneline, graph, no_graph, show_all, decorate, commit):
+def log_cmd(max_count, oneline, graph, show_all, decorate, commit):
     """
     Show commit logs.
     
     Displays commit history starting from HEAD or specified commit.
-    By default shows full commit information with ASCII graph.
     
     Examples:
         lit log                    # Show all commits from HEAD
         lit log -n 10              # Show last 10 commits
         lit log --oneline          # Show compact one-line format
+        lit log --graph            # Show ASCII graph of branches
         lit log --all              # Show commits from ALL branches
-        lit log --all --oneline    # Compact view of entire repo graph
-        lit log --no-graph         # Disable graph visualization
+        lit log --graph --all --oneline  # Git-style graph view
         lit log a1b2c3d            # Show history from specific commit
     """
     repo = Repository.find_repository()
@@ -522,25 +595,23 @@ def log_cmd(max_count, oneline, graph, no_graph, show_all, decorate, commit):
         click.echo(warning("No commits to display"))
         return
     
-    # Determine if we should show graph
-    show_graph_output = graph and not no_graph
-    
-    # Build graph structure
-    if show_all and show_graph_output:
-        # Use branch graph for --all
+    # Build graph structure based on options
+    if graph:
+        # Use proper branch graph with merge lines
         commit_graph = build_branch_graph(repo, history, refs_map)
-    elif show_graph_output or oneline:
-        # Simple graph for single branch
+    elif oneline:
+        # Simple graph for oneline without --graph
         simple_graph = build_commit_graph(history)
-        # Add empty decorations for compatibility
-        commit_graph = [(g, h, c, refs_map.get(h, [])) for g, h, c in simple_graph]
-        # Convert refs to decoration format
         commit_graph = [
             (g, h, c, [(ref.split('/')[-1], 'branch' if 'heads' in ref else 'remote' if 'remotes' in ref else 'tag') for ref in refs_map.get(h, [])])
             for g, h, c in simple_graph
         ]
     else:
-        commit_graph = [(None, h, c, []) for h, c in history]
+        # No graph, just list commits
+        commit_graph = [
+            (None, h, c, [(ref.split('/')[-1], 'branch' if 'heads' in ref else 'remote' if 'remotes' in ref else 'tag') for ref in refs_map.get(h, [])])
+            for h, c in history
+        ]
     
     # Display commits
     for item in commit_graph:
@@ -550,7 +621,13 @@ def log_cmd(max_count, oneline, graph, no_graph, show_all, decorate, commit):
             graph_line, commit_hash, commit_obj = item
             decorations = []
         
+        # Skip connector lines in non-graph mode, or just print them in graph mode
+        if commit_hash is None:
+            if graph:
+                click.echo(graph_line)
+            continue
+        
         if oneline:
             display_commit_oneline(graph_line or "* ", commit_hash, commit_obj, decorations)
         else:
-            display_commit_full(graph_line, commit_hash, commit_obj, show_graph_output, decorations)
+            display_commit_full(graph_line, commit_hash, commit_obj, graph, decorations)

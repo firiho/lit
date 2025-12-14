@@ -14,6 +14,10 @@ from lit.core.index import Index
 # Store original cwd
 _original_cwd = os.getcwd()
 
+# Set default author info for all tests (so commits don't prompt for input)
+os.environ.setdefault('LIT_AUTHOR_NAME', 'Test User')
+os.environ.setdefault('LIT_AUTHOR_EMAIL', 'test@example.com')
+
 
 @pytest.fixture(autouse=True)
 def reset_cwd():

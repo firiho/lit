@@ -94,6 +94,8 @@ def merge_cmd(branch, no_ff, abort, auto_strategy):
         if result.conflicts:
             # Get the target commit hash for saving merge state
             target_hash = repo.refs.read_ref(f"refs/heads/{branch}")
+            if not target_hash and '/' in branch:
+                target_hash = repo.refs.read_ref(f"refs/remotes/{branch}")
             
             click.echo(error(f"\nConflicts detected in {len(result.conflicts)} file(s):"))
             for conflict in result.conflicts:
@@ -132,6 +134,8 @@ def merge_cmd(branch, no_ff, abort, auto_strategy):
             
             # Get target commit for message
             target_hash = repo.refs.read_ref(f"refs/heads/{branch}")
+            if not target_hash and '/' in branch:
+                target_hash = repo.refs.read_ref(f"refs/remotes/{branch}")
             
             # Create merge commit
             commit = Commit.create(
