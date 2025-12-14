@@ -1,4 +1,4 @@
-"""Remote module for distributed Git operations.
+"""Remote module for distributed Lit operations.
 
 This module handles all remote-related functionality:
 - Remote management (add, remove, list)

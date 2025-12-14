@@ -14,7 +14,7 @@ def init_cmd(path, bare):
     Initialize a new Lit repository.
     
     Creates a .lit directory with the necessary structure for version control.
-    Similar to 'git init'.
+    Similar to 'lit init'.
     
     Examples:
         lit init                    # Initialize in current directory

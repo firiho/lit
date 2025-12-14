@@ -14,7 +14,7 @@ class Config:
     """
     Manages Lit configuration files.
     
-    Configuration is stored in INI format, similar to Git:
+    Configuration is stored in INI format, similar to Git (for compatibility):
     - Global config: ~/.litconfig
     - Repository config: .lit/config
     

@@ -4,7 +4,7 @@ import os
 import zlib
 from pathlib import Path
 from typing import Optional
-from .objects import GitObject, Blob, Tree, Commit
+from .objects import LitObject, Blob, Tree, Commit
 
 
 class Repository:
@@ -12,7 +12,7 @@ class Repository:
     Represents a Lit repository.
     
     A repository manages the .lit directory structure and provides
-    methods for reading and writing Git objects.
+    methods for reading and writing Lit objects.
     """
     
     def __init__(self, path: str = '.'):
@@ -155,7 +155,7 @@ class Repository:
         """
         return self.objects_dir / hash[:2] / hash[2:]
     
-    def write_object(self, obj: GitObject) -> str:
+    def write_object(self, obj: LitObject) -> str:
         """
         Write object to repository.
         
@@ -163,7 +163,7 @@ class Repository:
         <type> <size>\0<content>
         
         Args:
-            obj: Git object to write
+            obj: Lit object to write
             
         Returns:
             str: SHA-1 hash of the object
@@ -187,7 +187,7 @@ class Repository:
         
         return hash
     
-    def read_object(self, hash: str) -> GitObject:
+    def read_object(self, hash: str) -> LitObject:
         """
         Read object from repository.
         
@@ -195,7 +195,7 @@ class Repository:
             hash: 40-character SHA-1 hash
             
         Returns:
-            GitObject: Deserialized object (Blob, Tree, or Commit)
+            LitObject: Deserialized object (Blob, Tree, or Commit)
             
         Raises:
             Exception: If object not found or has invalid format

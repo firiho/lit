@@ -82,7 +82,7 @@ def push_cmd(remote, branch, force, all):
     local_commit = local_ref.read_text().strip()
     
     # Fetch current remote state to check for conflicts
-    # (In Git, this happens automatically during push)
+    # (In Lit, this happens automatically during push)
     try:
         repo.remote.fetch(remote, branch)
     except:

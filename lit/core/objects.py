@@ -1,12 +1,12 @@
-"""Git objects for Lit."""
+"""Lit objects for Lit."""
 
 from abc import ABC, abstractmethod
 from typing import Optional
 from .hash import hash_object
 
 
-class GitObject(ABC):
-    """Base class for all Git objects."""
+class LitObject(ABC):
+    """Base class for all Lit objects."""
     
     def __init__(self):
         self._hash: Optional[str] = None
@@ -45,7 +45,7 @@ class GitObject(ABC):
         """
         Compute and cache object hash.
         
-        Git objects are hashed with a header containing the type and size.
+        Lit objects are hashed with a header containing the type and size.
         Format: <type> <size>\0<content>
         
         Returns:
@@ -68,7 +68,7 @@ class GitObject(ABC):
         return self.compute_hash()
 
 
-class Blob(GitObject):
+class Blob(LitObject):
     """
     Represents file content.
     
@@ -159,7 +159,7 @@ class TreeEntry:
         return self.name < other.name
 
 
-class Tree(GitObject):
+class Tree(LitObject):
     """
     Represents directory structure.
     
@@ -188,7 +188,7 @@ class Tree(GitObject):
     
     def serialize(self) -> bytes:
         """
-        Serialize tree to Git format.
+        Serialize tree to Lit format.
         
         Format: <mode> <name>\0<20-byte hash>
         Each entry is: mode (as ASCII), space, name (as ASCII), null byte, hash (as binary)
@@ -205,7 +205,7 @@ class Tree(GitObject):
     
     def deserialize(self, data: bytes) -> None:
         """
-        Deserialize tree from Git format.
+        Deserialize tree from Lit format.
         
         Args:
             data: Serialized tree data
@@ -270,7 +270,7 @@ class Tree(GitObject):
         return f"Tree(entries={len(self.entries)})"
 
 
-class Commit(GitObject):
+class Commit(LitObject):
     """
     Represents a commit with metadata.
     
@@ -297,7 +297,7 @@ class Commit(GitObject):
     
     def serialize(self) -> bytes:
         """
-        Serialize commit to Git format.
+        Serialize commit to Lit format.
         
         Format:
         tree <tree-hash>
@@ -327,7 +327,7 @@ class Commit(GitObject):
     
     def deserialize(self, data: bytes) -> None:
         """
-        Deserialize commit from Git format.
+        Deserialize commit from Lit format.
         
         Args:
             data: Serialized commit data

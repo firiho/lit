@@ -5,11 +5,11 @@ __author__ = 'Flambeau Iriho'
 __email__ = 'irihoflambeau@gmail.com'
 
 from lit.core.repository import Repository
-from lit.core.objects import GitObject, Blob, Tree, Commit
+from lit.core.objects import LitObject, Blob, Tree, Commit
 
 __all__ = [
     'Repository',
-    'GitObject',
+    'LitObject',
     'Blob',
     'Tree',
     'Commit',

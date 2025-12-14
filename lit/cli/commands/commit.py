@@ -282,7 +282,7 @@ def commit_cmd(message, author):
         
         # Note: Index is NOT cleared after commit.
         # It should continue to reflect the committed state (match HEAD).
-        # This is how Git works - index represents staged area.
+        # This is how Lit works - index represents staged area.
         
     except Exception as e:
         click.echo(error(f"Failed to create commit: {e}"))

@@ -158,7 +158,7 @@ def get_all_commits_history(repo, start_hashes, max_count=None):
 
 def build_branch_graph(repo, history, refs_map):
     """
-    Build ASCII graph showing branch structure similar to git log --graph.
+    Build ASCII graph showing branch structure similar to lit log --graph.
     
     Produces output like:
     *   commit (merge)
@@ -541,7 +541,7 @@ def log_cmd(max_count, oneline, graph, show_all, decorate, commit):
         lit log --oneline          # Show compact one-line format
         lit log --graph            # Show ASCII graph of branches
         lit log --all              # Show commits from ALL branches
-        lit log --graph --all --oneline  # Git-style graph view
+        lit log --graph --all --oneline  # Lit-style graph view
         lit log a1b2c3d            # Show history from specific commit
     """
     repo = Repository.find_repository()

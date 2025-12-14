@@ -26,7 +26,7 @@ def clone_cmd(repository, directory, bare):
     
     Examples:
         lit clone /path/to/source my-project
-        lit clone --bare /path/to/source origin.git
+        lit clone --bare /path/to/source origin.lit
         lit clone file:///path/to/source
         lit clone ../other-repo
     
@@ -51,11 +51,11 @@ def clone_cmd(repository, directory, bare):
         else:
             directory = repo_path.name
         
-        # For bare repos, add .git suffix if not present
-        if bare and not directory.endswith('.git'):
-            directory = directory + '.git'
-        # Remove .git suffix for non-bare if present
-        elif not bare and directory.endswith('.git'):
+        # For bare repos, add .lit suffix if not present
+        if bare and not directory.endswith('.lit'):
+            directory = directory + '.lit'
+        # Remove .lit suffix for non-bare if present
+        elif not bare and directory.endswith('.lit'):
             directory = directory[:-4]
     
     try:

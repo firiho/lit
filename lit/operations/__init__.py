@@ -1,6 +1,6 @@
-"""Operations module for high-level Git operations.
+"""Operations module for high-level Lit operations.
 
-This module contains the business logic for Git operations like:
+This module contains the business logic for Lit operations like:
 - Diff computation
 - Merge algorithms
 - Stash management

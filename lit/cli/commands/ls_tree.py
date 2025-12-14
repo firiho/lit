@@ -111,7 +111,7 @@ def cat_file_cmd(show_type, show_size, pretty, object_hash):
     """
     Show object content, type, or size.
     
-    Displays the content of a Git object (blob, tree, commit).
+    Displays the content of a Lit object (blob, tree, commit).
     
     Examples:
         lit cat-file -t abc123     # Show object type

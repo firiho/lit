@@ -36,7 +36,7 @@ class IndexEntry:
 
 class Index:
     """
-    Git index (staging area) implementation.
+    Lit index (staging area) implementation.
     
     The index stores a list of files to be included in the next commit.
     Each entry contains file metadata and a hash of the file content.
@@ -145,7 +145,7 @@ class Index:
             gid=stat.st_gid
         )
         
-        # Auto-persist to disk (like git add)
+        # Auto-persist to disk (like lit add)
         if hasattr(repo, 'index_file'):
             self.write(str(repo.index_file))
         
@@ -162,7 +162,7 @@ class Index:
         if path in self.entries:
             del self.entries[path]
             
-            # Auto-persist to disk (like git rm)
+            # Auto-persist to disk (like lit rm)
             if repo and hasattr(repo, 'index_file'):
                 self.write(str(repo.index_file))
     
@@ -176,7 +176,7 @@ class Index:
     
     def write(self, index_path: str) -> None:
         """
-        Write index to disk in Git binary format.
+        Write index to disk in Lit binary format.
         
         Format:
         - Header: 'DIRC' + version (4 bytes) + entry count (4 bytes)

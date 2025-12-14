@@ -7,7 +7,7 @@ from lit.core.objects import Commit
 
 class RefManager:
     """
-    Manages Git references (branches, tags, HEAD).
+    Manages Lit references (branches, tags, HEAD).
     
     Handles:
     - Symbolic references (HEAD pointing to branch)
