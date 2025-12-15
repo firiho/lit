@@ -9,43 +9,43 @@
 ## Features
 
 ### Core Version Control
-- ✅ **Content-Addressable Storage** - SHA-1 based object database with zlib compression
-- ✅ **Repository Management** - Initialize, configure, and manage `.lit` repositories
-- ✅ **Staging Area** - Git-compatible index (DIRC format) for selective commits
-- ✅ **Commit History** - Full DAG-based commit graph with parent tracking
-- ✅ **Branch Operations** - Create, delete, switch, and list branches
-- ✅ **Symbolic References** - HEAD support with detached HEAD mode
-- ✅ **Tag Support** - Lightweight and annotated tags with messages
+- **Content-Addressable Storage** - SHA-1 based object database with zlib compression
+- **Repository Management** - Initialize, configure, and manage `.lit` repositories
+- **Staging Area** - Git-compatible index (DIRC format) for selective commits
+- **Commit History** - Full DAG-based commit graph with parent tracking
+- **Branch Operations** - Create, delete, switch, and list branches
+- **Symbolic References** - HEAD support with detached HEAD mode
+- **Tag Support** - Lightweight and annotated tags with messages
 
 ### Comparison & Merging
-- ✅ **Diff Engine** - Unified diff format for files, trees, and commits
-- ✅ **Three-Way Merge** - Automatic merge with common ancestor detection
-- ✅ **Auto-Merge** - Automatic conflict resolution with configurable strategies
-- ✅ **Fast-Forward Detection** - Optimized merges when possible
-- ✅ **Conflict Detection** - Identifies merge conflicts with conflict markers
-- ✅ **Cherry-Pick** - Apply specific commits to current branch
-- ✅ **Rebase** - Reapply commits on top of another base tip
+- **Diff Engine** - Unified diff format for files, trees, and commits
+- **Three-Way Merge** - Automatic merge with common ancestor detection
+- **Auto-Merge** - Automatic conflict resolution with configurable strategies
+- **Fast-Forward Detection** - Optimized merges when possible
+- **Conflict Detection** - Identifies merge conflicts with conflict markers
+- **Cherry-Pick** - Apply specific commits to current branch
+- **Rebase** - Reapply commits on top of another base tip
 
 ### Distributed Operations
-- ✅ **Clone** - Full repository cloning (local file:// protocol)
-- ✅ **Remote Management** - Add, remove, and list remote repositories
-- ✅ **Fetch** - Download objects and refs from remote repositories
-- ✅ **Push** - Upload commits and objects to remote repositories
-- ✅ **Pull** - Fetch and merge changes from remote repositories
-- ✅ **Bare Repositories** - Server-side repositories without working tree
+- **Clone** - Full repository cloning (local file:// protocol)
+- **Remote Management** - Add, remove, and list remote repositories
+- **Fetch** - Download objects and refs from remote repositories
+- **Push** - Upload commits and objects to remote repositories
+- **Pull** - Fetch and merge changes from remote repositories
+- **Bare Repositories** - Server-side repositories without working tree
 
 ### Advanced Features
-- ✅ **Stash** - Save and restore uncommitted changes
-- ✅ **Reset** - Reset HEAD to specified state (soft/mixed/hard modes)
-- ✅ **Cherry-Pick** - Apply commits from other branches
-- ✅ **Rebase** - Reapply commits with --continue/--abort support
-- ✅ **Ignore Files** - .litignore support with glob patterns
-- ✅ **Tree Inspection** - ls-tree, cat-file, count-objects commands
+- **Stash** - Save and restore uncommitted changes
+- **Reset** - Reset HEAD to specified state (soft/mixed/hard modes)
+- **Cherry-Pick** - Apply commits from other branches
+- **Rebase** - Reapply commits with --continue/--abort support
+- **Ignore Files** - .litignore support with glob patterns
+- **Tree Inspection** - ls-tree, cat-file, count-objects commands
 
-### Current Limitations
-- ⏳ **Network Protocols** - Only local file:// supported (HTTP/SSH planned)
-- ⏳ **Submodules** - Not yet implemented
-- ⏳ **Worktrees** - Multiple working trees not supported
+### Current Limitations (Relative to Git)
+- **Network Protocols** - Only local file:// supported (HTTP/SSH planned)
+- **Submodules & Worktrees** - Not yet implemented
+
 
 ## Installation
 
@@ -386,12 +386,12 @@ make clean
 ```
 
 ### Areas for Contribution
-- 🌐 Network protocol implementation (HTTP/HTTPS/SSH)
-- 🔧 Submodule support
-- 📦 Multiple worktrees
-- 📚 Documentation improvements
-- 🧪 Additional test coverage
-- ⚡ Performance optimizations
+- Network protocol implementation (HTTP/HTTPS/SSH)
+- Submodule support
+- Multiple worktrees
+- Documentation improvements
+- Additional test coverage
+- Performance optimizations
 
 ## License
 
