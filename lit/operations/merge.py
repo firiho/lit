@@ -523,35 +523,6 @@ class MergeEngine:
             # Any error in merge logic - report conflict
             return None
     
-    def _try_ot_merge(
-        self,
-        base_content: Optional[bytes],
-        ours_content: Optional[bytes],
-        theirs_content: Optional[bytes]
-    ) -> Optional[bytes]:
-        """
-        Try to merge using OT-inspired auto-merge.
-        
-        This is more powerful than line-based merge and can handle:
-        - Different number of lines in branches
-        - Concurrent edits in non-overlapping regions
-        - Insertions and deletions at different positions
-        
-        Args:
-            base_content: Content in base version
-            ours_content: Content in our version
-            theirs_content: Content in their version
-            
-        Returns:
-            Merged content if successful, None if conflicts detected
-        """
-        try:
-            from lit.operations.auto_merge import try_ot_auto_merge
-            return try_ot_auto_merge(base_content, ours_content, theirs_content)
-        except Exception:
-            # Any error in OT merge - report conflict
-            return None
-    
     def _resolve_with_strategy(
         self,
         base_content: Optional[bytes],
